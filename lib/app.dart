@@ -11,19 +11,39 @@ class MyApp extends ConsumerWidget {
     // Watch the GoRouter provider to integrate it with MaterialApp.
     final router = ref.watch(goRouterProvider);
 
-    return MaterialApp.router(
-      title: 'ComicsVerse',
-      debugShowCheckedModeBanner: false,
+    
 
-      // Configure the light theme.
-      theme: AppTheme.lightTheme,
-      // Configure the dark theme.
-      darkTheme: AppTheme.darkTheme,
-      // Automatically select theme based on system settings.
-      themeMode: ThemeMode.system,
+    final themeMode = ref.watch(themeModeProvider);
 
-      // Set the router configuration.
-      routerConfig: router,
+
+    return Container(
+  
+      child: MaterialApp.router(
+        title: 'ComicsVerse',
+        debugShowCheckedModeBanner: false,
+
+        // Configure the light theme.
+        theme: AppTheme.lightTheme,
+        // Configure the dark theme.
+        darkTheme: AppTheme.darkTheme,
+        // Automatically select theme based on system settings.
+        themeMode: themeMode,
+
+        // Set the router configuration.
+        routerConfig: router,
+        builder: (context, child) {
+          final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+          
+          return Container(
+            decoration: BoxDecoration(
+              gradient: isDarkMode 
+                  ? AppTheme.darkLinearGradient 
+                  : AppTheme.lightLinearGradient,
+            ),
+            child: child, 
+          );
+        },
+      ),
     );
   }
 }

@@ -11,6 +11,7 @@ import 'package:shimmer/shimmer.dart';
 import 'package:mycomicsapp/features/home/domain/entities/chapter.dart';
 import 'package:mycomicsapp/features/library/presentation/providers/library_providers.dart';
 import 'package:mycomicsapp/features/profile/presentation/providers/profile_providers.dart';
+import 'package:mycomicsapp/core/utils/toast_utils.dart';
 
 /// Provider to fetch the details of a specific story.
 final storyDetailsProvider = FutureProvider.autoDispose.family<StoryDetails, String>((ref, storyId) {
@@ -183,10 +184,23 @@ class _StoryDetailsScreenState extends State<StoryDetailsScreen> {
             const SizedBox(width: 12),
             isBookmarkedAsync.when(
               data: (isBookmarked) => IconButton(
-                onPressed: () {
-                  ref.read(isBookmarkedProvider(story.storyId).notifier).toggleBookmark();
+                onPressed: () async {
+                  final wasBookmarked = isBookmarked;
+                  await ref.read(isBookmarkedProvider(story.storyId).notifier).toggleBookmark();
                   ref.invalidate(bookmarkedStoriesProvider);
-                  // ref.invalidate(userProfileProvider);
+                  if (context.mounted) {
+                    if (wasBookmarked) {
+                      ToastUtils.showError(
+                        context, 
+                        'Removed "${story.title}" from library!'
+                      );
+                    } else {
+                      ToastUtils.showSuccess(
+                        context, 
+                        'Added "${story.title}" to library!'
+                      );
+                    }
+                  }
                 },
                 icon: Icon(isBookmarked ? Icons.bookmark_added_rounded : Icons.bookmark_add_outlined),
                 color: theme.colorScheme.primary,

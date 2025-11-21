@@ -12,33 +12,57 @@ class LibraryScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final bookmarkedStoriesAsync = ref.watch(bookmarkedStoriesProvider);
 
+    // --- LOGIC RESPONSIVE ---
+    final size = MediaQuery.of(context).size;
+
+    // Nếu màn hình rộng > 600px (Tablet/Ngang) -> 4 cột, ngược lại 2 cột
+    final int gridColumns = size.width > 600 ? 4 : 2;
+
+    // Điều chỉnh tỉ lệ thẻ (Width / Height)
+    // Màn hình nhỏ: Cần thẻ cao hơn để chứa chữ -> 0.62
+    // Màn hình lớn: Thẻ có thể rộng hơn -> 0.72
+    final double cardAspectRatio = size.width > 600 ? 0.72 : 0.62;
+    // ------------------------
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'Library',
-          style: theme.textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.bold),
+          style: theme.textTheme.headlineLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
         ),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
       body: bookmarkedStoriesAsync.when(
-        loading: () => _buildLoadingSkeleton(context),
-        error: (error, stackTrace) => Center(
-          child: Text('Error loading library: ${error.toString()}'),
-        ),
+        // Truyền tham số layout vào Skeleton để khớp với giao diện thật
+        loading: () =>
+            _buildLoadingSkeleton(context, gridColumns, cardAspectRatio),
+        error: (error, stackTrace) =>
+            Center(child: Text('Error loading library: ${error.toString()}')),
         data: (stories) {
           if (stories.isEmpty) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.bookmark_remove_outlined, size: 80, color: theme.colorScheme.onSurfaceVariant),
+                  Icon(
+                    Icons.bookmark_remove_outlined,
+                    size: 80,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                   const SizedBox(height: 16),
-                  Text('Your library is empty', style: theme.textTheme.headlineSmall),
+                  Text(
+                    'Your library is empty',
+                    style: theme.textTheme.headlineSmall,
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     'Add your favorite stories here!',
-                    style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ],
               ),
@@ -49,11 +73,11 @@ class LibraryScreen extends ConsumerWidget {
             onRefresh: () => ref.refresh(bookmarkedStoriesProvider.future),
             child: GridView.builder(
               padding: const EdgeInsets.all(16.0),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: gridColumns, // Sử dụng biến Responsive
                 mainAxisSpacing: 16,
                 crossAxisSpacing: 16,
-                childAspectRatio: 2 / 3.2,
+                childAspectRatio: cardAspectRatio, // Sử dụng biến Responsive
               ),
               itemCount: stories.length,
               itemBuilder: (context, index) {
@@ -67,7 +91,11 @@ class LibraryScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildLoadingSkeleton(BuildContext context) {
+  Widget _buildLoadingSkeleton(
+    BuildContext context,
+    int crossAxisCount,
+    double childAspectRatio,
+  ) {
     final theme = Theme.of(context);
     final isDarkMode = theme.brightness == Brightness.dark;
     return Shimmer.fromColors(
@@ -75,17 +103,20 @@ class LibraryScreen extends ConsumerWidget {
       highlightColor: isDarkMode ? Colors.grey[800]! : Colors.grey[100]!,
       child: GridView.builder(
         padding: const EdgeInsets.all(16.0),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: crossAxisCount, // Đồng bộ số cột với giao diện chính
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
-          childAspectRatio: 2 / 3.2,
+          childAspectRatio:
+              childAspectRatio, // Đồng bộ tỉ lệ với giao diện chính
         ),
-        itemCount: 9,
+        itemCount: 12, // Tăng số lượng item giả lập lên một chút cho đẹp
         itemBuilder: (context, index) => Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(
+              12,
+            ), // Bo góc giống StoryCard (thường là 12 hoặc 8)
           ),
         ),
       ),

@@ -6,8 +6,16 @@ import 'package:flutter_animate/flutter_animate.dart';
 /// A widget that displays a grid of stories, typically in a "For You" section.
 class ForYouGridSection extends StatelessWidget {
   final List<Story> stories;
+  //Responsive
+  final int crossAxisCount;
+  final double childAspectRatio;
 
-  const ForYouGridSection({super.key, required this.stories});
+  const ForYouGridSection({
+    super.key,
+    required this.stories,
+    required this.crossAxisCount,
+    required this.childAspectRatio,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -30,29 +38,31 @@ class ForYouGridSection extends StatelessWidget {
           ),
           if (stories.isEmpty)
             const SliverFillRemaining(
+              hasScrollBody: false, // Đảm bảo không gây lỗi cuộn khi rỗng
               child: Center(child: Text("No stories found.")),
             )
           else
             SliverGrid(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: crossAxisCount, // Sử dụng giá trị từ HomeScreen
                 mainAxisSpacing: 16,
                 crossAxisSpacing: 16,
-                childAspectRatio: 0.6, // Adjust aspect ratio for better look
+                childAspectRatio:
+                    childAspectRatio, // Sử dụng giá trị từ HomeScreen
               ),
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  return StoryCard(story: stories[index]).animate().fadeIn(
-                        delay: (index * 70).ms,
-                        duration: 400.ms,
-                      ).slideY(begin: 0.2);
-                },
-                childCount: stories.length,
-              ),
+              delegate: SliverChildBuilderDelegate((context, index) {
+                // Giữ nguyên hiệu ứng Animate của bạn
+                return StoryCard(story: stories[index])
+                    .animate()
+                    .fadeIn(delay: (index * 70).ms, duration: 400.ms)
+                    .slideY(begin: 0.2);
+              }, childCount: stories.length),
             ),
+
+          // Giữ lại khoảng trống dưới cùng
+          const SliverToBoxAdapter(child: SizedBox(height: 24)),
         ],
       ),
     );
   }
 }
-

@@ -77,7 +77,7 @@ class StoryCard extends StatelessWidget {
             ),
             // Text content takes the remaining space.
             Expanded(
-              flex: 2,
+              flex: 1,
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
@@ -92,17 +92,7 @@ class StoryCard extends StatelessWidget {
                           ?.copyWith(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 2),
-                    // UPDATE: Added Expanded to allow the author name to truncate.
-                    Expanded(
-                      child: Text(
-                        story.author.displayName ?? 'Unknown Author',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
+
                   ],
                 ),
               ),

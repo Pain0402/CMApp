@@ -7,15 +7,12 @@ import 'package:mycomicsapp/features/search/domain/entities/genre.dart';
 import 'package:mycomicsapp/features/search/domain/repositories/search_repository.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-// (Các provider searchRepositoryProvider và searchQueryProvider giữ nguyên từ code gốc của bạn)
 final searchRepositoryProvider = Provider<SearchRepository>((ref) {
   final supabaseClient = ref.watch(supabaseClientProvider);
   return SearchRepositoryImpl(supabaseClient);
 });
 
 final searchQueryProvider = StateProvider<String>((ref) => '');
-
-// --- BẮT ĐẦU THÊM/CẬP NHẬT TỪ ĐÂY ---
 
 // Provider để lấy danh sách tất cả thể loại
 final allGenresProvider = FutureProvider.autoDispose<List<Genre>>((ref) {
@@ -43,7 +40,6 @@ class FilterOptionsNotifier extends StateNotifier<FilterOptions> {
   }
 }
 
-// Cập nhật searchResultsProvider để lắng nghe cả bộ lọc
 final searchResultsProvider =
     AsyncNotifierProvider.autoDispose<SearchResultsNotifier, List<Story>>(
       SearchResultsNotifier.new,
@@ -55,7 +51,7 @@ class SearchResultsNotifier extends AutoDisposeAsyncNotifier<List<Story>> {
   @override
   Future<List<Story>> build() async {
     final query = ref.watch(searchQueryProvider);
-    final filters = ref.watch(filterOptionsProvider); // Lắng nghe bộ lọc
+    final filters = ref.watch(filterOptionsProvider);
 
     if (query.isEmpty && filters.genreIds.isEmpty) {
       return [];
@@ -72,8 +68,6 @@ class SearchResultsNotifier extends AutoDisposeAsyncNotifier<List<Story>> {
         // Truyền cả query và filters vào repository
         final results = await searchRepository.searchStories(query, filters);
         if (!completer.isCompleted) completer.complete(results);
-      } catch (e, st) {
-        if (!completer.isCompleted) completer.completeError(e, st);
       } catch (e, st) {
         if (!completer.isCompleted) completer.completeError(e, st);
       }

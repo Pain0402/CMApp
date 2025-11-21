@@ -20,16 +20,14 @@ class FilterBottomSheet extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('Thể loại', style: theme.textTheme.titleLarge),
+          Text('Genres', style: theme.textTheme.titleLarge),
           const SizedBox(height: 8),
 
           // Xử lý cả 3 trạng thái của FutureProvider
           genresAsync.when(
             data: (genres) {
               if (genres.isEmpty) {
-                return const Center(
-                  child: Text('Không tìm thấy thể loại nào.'),
-                );
+                return const Center(child: Text('No results found.'));
               }
               // Hiển thị Wrap các FilterChip
               return Wrap(
@@ -51,7 +49,6 @@ class FilterBottomSheet extends ConsumerWidget {
             },
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (e, s) => Center(
-              // Make sure this error part exists
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
@@ -66,7 +63,7 @@ class FilterBottomSheet extends ConsumerWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              child: const Text('Áp dụng'),
+              child: const Text('Apply'),
               onPressed: () => Navigator.pop(context),
             ),
           ),

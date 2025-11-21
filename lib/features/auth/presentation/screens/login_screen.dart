@@ -1,11 +1,14 @@
 import 'package:mycomicsapp/features/auth/presentation/providers/auth_providers.dart';
 import 'package:mycomicsapp/features/auth/presentation/widgets/auth_field.dart';
+import 'package:mycomicsapp/core/utils/toast_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+
 class LoginScreen extends ConsumerStatefulWidget {
+  
   const LoginScreen({super.key});
 
   @override
@@ -19,6 +22,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _isLoading = false;
   bool _isGoogleLoading = false;
 
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkLogoutStatus();
+    });
+  }
+
+  void _checkLogoutStatus() {
+    final justLoggedOut = ref.read(justLoggedOutProvider);
+    if (justLoggedOut) {
+      ToastUtils.showSuccess(
+        context, 
+        'Signout Successfully!'
+      );
+      
+      ref.read(justLoggedOutProvider.notifier).state = false;
+    }
+
+  }
+
   Future<void> _signIn() async {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
@@ -28,15 +52,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
-        // GoRouter redirect will handle navigation automatically on success.
+        
+        ref.read(justLoggedInProvider.notifier).state = true;
       } on AuthException catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(e.message),
-              backgroundColor: Theme.of(context).colorScheme.error,
-            ),
-          );
+          ToastUtils.showError(context, e.message);
+
         }
       } finally {
         if (mounted) {
@@ -51,15 +72,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       final authRepository = ref.read(authRepositoryProvider);
       await authRepository.signInWithGoogle();
-      // GoRouter redirect will handle navigation on success.
+
+      ref.read(justLoggedInProvider.notifier).state = true;
     } on AuthException catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+        ToastUtils.showError(context, e.message);
       }
     } finally {
       if (mounted) {
@@ -88,7 +105,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Use Image.asset for the logo
                 Image.asset('assets/images/logo.png', height: 80),
                 const SizedBox(height: 20),
                 Text(

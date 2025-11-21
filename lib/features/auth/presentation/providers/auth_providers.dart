@@ -20,3 +20,6 @@ final authStateChangesProvider = StreamProvider<User?>((ref) {
   final authRepository = ref.watch(authRepositoryProvider);
   return authRepository.authStateChanges;
 });
+
+final justLoggedInProvider = StateProvider<bool>((ref) => false);
+final justLoggedOutProvider = StateProvider<bool>((ref) => false);

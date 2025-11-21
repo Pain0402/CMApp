@@ -15,6 +15,8 @@ import 'package:mycomicsapp/features/reader/presentation/screens/reader_screen.d
 import 'package:mycomicsapp/features/search/presentation/screens/search_screen.dart';
 import 'package:mycomicsapp/presentation/screens/scaffold_with_nav_bar.dart';
 import 'package:mycomicsapp/presentation/screens/splash_screen.dart';
+import 'package:mycomicsapp/features/home/presentation/screens/ranking_screen.dart';
+
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
@@ -100,6 +102,14 @@ final goRouterProvider = Provider<GoRouter>((ref) {
           StatefulShellBranch(
             routes: [
               GoRoute(
+                path: '/ranking',
+                builder: (context, state) => const RankingScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
                 path: '/library',
                 builder: (context, state) => const LibraryScreen(),
               ),
@@ -119,7 +129,7 @@ final goRouterProvider = Provider<GoRouter>((ref) {
     // Automatic redirection logic based on authentication state.
     redirect: (context, state) {
       if (authState.isLoading || authState.hasError) {
-        return null; // Stay on the current screen (e.g., SplashScreen) while loading.
+        return null; 
       }
 
       final isLoggedIn = authState.valueOrNull != null;
