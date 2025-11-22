@@ -5,6 +5,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mycomicsapp/features/home/domain/entities/story_details.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+enum RankingType {
+  weekly,
+  monthly,
+  trending,
+  newcomers
+}
+
+
 /// Provides the singleton instance of the Supabase client.
 final supabaseClientProvider = Provider<SupabaseClient>((ref) => Supabase.instance.client);
 
@@ -18,6 +26,12 @@ final storyRepositoryProvider = Provider<StoryRepository>((ref) {
 final allStoriesProvider = FutureProvider<List<Story>>((ref) async {
   final repository = ref.watch(storyRepositoryProvider);
   return repository.getAllStories();
+});
+
+// Provider to fetch ranked stories based on type.
+final rankingStoriesProvider = FutureProvider.family<List<Story>, RankingType>((ref, type) async {
+  final repository = ref.watch(storyRepositoryProvider);
+  return repository.getRankedStories(type);
 });
 
 // It uses .family to pass the storyId as a parameter.

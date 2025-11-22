@@ -19,6 +19,15 @@ class SearchScreen extends ConsumerWidget {
 
     final theme = Theme.of(context);
 
+    // LOGIC RESPONSIVE
+    final size = MediaQuery.of(context).size;
+
+    // Nếu màn hình rộng > 600px (Tablet/Ngang) -> 4 cột, ngược lại 2 cột
+    final int gridColumns = size.width > 600 ? 4 : 2;
+
+    // Màn hình nhỏ: 0.65 (cao hơn để chứa chữ), Màn hình lớn: 0.72 (cân đối hơn)
+    final double childAspectRatio = size.width > 600 ? 0.72 : 0.65;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -70,14 +79,14 @@ class SearchScreen extends ConsumerWidget {
 
             const SizedBox(width: 12),
 
-            //NÚT LỌC
+            // NÚT LỌC
             Stack(
               children: [
                 Container(
                   height: 48,
                   width: 48,
                   decoration: BoxDecoration(
-                    // Nếu đang lọc -> Đổi màu nền thành màu Chính (Primary) để gây chú ý
+                    // Nếu đang lọc -> Đổi màu nền thành màu Chính (Primary)
                     // Nếu không -> Giữ màu xám
                     color: hasActiveFilters
                         ? theme.colorScheme.primary
@@ -112,24 +121,6 @@ class SearchScreen extends ConsumerWidget {
                     },
                   ),
                 ),
-                // Chấm đỏ thông báo (Badge) - Chỉ hiện khi có filter
-                if (hasActiveFilters)
-                  Positioned(
-                    top: 0,
-                    right: 0,
-                    child: Container(
-                      width: 14,
-                      height: 14,
-                      decoration: BoxDecoration(
-                        color: Colors.red, // Màu đỏ cảnh báo
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: theme.colorScheme.surface,
-                          width: 2,
-                        ),
-                      ),
-                    ),
-                  ),
               ],
             ),
           ],
@@ -164,14 +155,14 @@ class SearchScreen extends ConsumerWidget {
 
           return GridView.builder(
             padding: const EdgeInsets.all(16),
-            //Tự động ẩn bàn phím khi cuộn
+            // Tự động ẩn bàn phím khi cuộn
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
 
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: gridColumns, //RESPONSIVE
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
-              childAspectRatio: 0.65,
+              childAspectRatio: childAspectRatio, //RESPONSIVE
             ),
             itemCount: stories.length,
             itemBuilder: (context, index) {

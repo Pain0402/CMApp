@@ -40,6 +40,11 @@ class FilterBottomSheet extends ConsumerWidget {
                   return FilterChip(
                     label: Text(genre.name),
                     selected: isSelected,
+                    showCheckmark: false,
+                    selectedColor: theme.colorScheme.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
                     onSelected: (_) => ref
                         .read(filterOptionsProvider.notifier)
                         .toggleGenre(genre.id),

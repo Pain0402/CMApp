@@ -2,6 +2,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:mycomicsapp/features/home/domain/entities/story.dart';
 import 'package:mycomicsapp/features/auth/domain/entities/profile.dart';
 import 'package:mycomicsapp/features/home/domain/entities/story_details.dart';
+import 'package:mycomicsapp/features/home/presentation/providers/home_providers.dart';
 
 class StoryRepository {
   final SupabaseClient _client;
@@ -22,13 +23,51 @@ class StoryRepository {
   /// Fetches detailed information for a single story using an RPC.
   Future<StoryDetails> getStoryDetails(String storyId) async {
     try {
-      final response = await _client.rpc(
+      final rpcResponse = await _client.rpc(
         'get_story_details',
         params: {'p_story_id': storyId},
       );
-      return StoryDetails.fromRpcResponse(response as Map<String, dynamic>);
+      final initialDetails = StoryDetails.fromRpcResponse(rpcResponse as Map<String, dynamic>);
+
+      final storyData = await _client
+          .from('Story')
+          .select('*, profiles:author_id(*)') 
+          .eq('story_id', storyId)
+          .single();
+      
+      final richStory = Story.fromMap(storyData);
+      return StoryDetails(
+        story: richStory,
+        chapters: initialDetails.chapters,
+      );
     } catch (e) {
       print('Error fetching story details: $e');
+      rethrow;
+    }
+  }
+
+   /// Fetches ranked stories based on the specified type.
+  Future<List<Story>> getRankedStories(RankingType type) async {
+    try {
+      dynamic query = _client.from('Story').select('*, profiles:author_id(*)');
+
+      switch (type) {
+        case RankingType.weekly:
+        case RankingType.monthly:
+          query = query.order('total_reads', ascending: false);
+          break;
+        case RankingType.trending:
+          query = query.order('average_rating', ascending: false);
+          break;
+        case RankingType.newcomers:
+          query = query.order('created_at', ascending: false);
+          break;
+      }
+
+      final data = await query.limit(20);
+      return (data as List).map((item) => Story.fromMap(item)).toList();
+    } catch (e) {
+      print('Error fetching ranked stories: $e');
       rethrow;
     }
   }

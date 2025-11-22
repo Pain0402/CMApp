@@ -136,6 +136,10 @@ class _StoryDetailsScreenState extends State<StoryDetailsScreen> {
                   style: theme.textTheme.titleMedium?.copyWith(color: theme.colorScheme.onSurfaceVariant),
                 ),
                 const SizedBox(width: 16),
+                Icon(Icons.remove_red_eye_outlined, size: 20, color: theme.colorScheme.secondary),
+                const SizedBox(width: 4),
+                Text('${story.totalReads}',style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
+                const SizedBox(width: 16),
                 const Icon(Icons.star_rate_rounded, color: Colors.amber, size: 20),
                 const SizedBox(width: 4),
                 Text(

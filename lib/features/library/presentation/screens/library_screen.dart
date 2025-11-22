@@ -12,7 +12,7 @@ class LibraryScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final bookmarkedStoriesAsync = ref.watch(bookmarkedStoriesProvider);
 
-    // --- LOGIC RESPONSIVE ---
+    //LOGIC RESPONSIVE
     final size = MediaQuery.of(context).size;
 
     // Nếu màn hình rộng > 600px (Tablet/Ngang) -> 4 cột, ngược lại 2 cột
@@ -22,7 +22,6 @@ class LibraryScreen extends ConsumerWidget {
     // Màn hình nhỏ: Cần thẻ cao hơn để chứa chữ -> 0.62
     // Màn hình lớn: Thẻ có thể rộng hơn -> 0.72
     final double cardAspectRatio = size.width > 600 ? 0.72 : 0.62;
-    // ------------------------
 
     return Scaffold(
       appBar: AppBar(
@@ -74,10 +73,10 @@ class LibraryScreen extends ConsumerWidget {
             child: GridView.builder(
               padding: const EdgeInsets.all(16.0),
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: gridColumns, // Sử dụng biến Responsive
+                crossAxisCount: gridColumns, // Responsive
                 mainAxisSpacing: 16,
                 crossAxisSpacing: 16,
-                childAspectRatio: cardAspectRatio, // Sử dụng biến Responsive
+                childAspectRatio: cardAspectRatio, // Responsive
               ),
               itemCount: stories.length,
               itemBuilder: (context, index) {
@@ -110,13 +109,11 @@ class LibraryScreen extends ConsumerWidget {
           childAspectRatio:
               childAspectRatio, // Đồng bộ tỉ lệ với giao diện chính
         ),
-        itemCount: 12, // Tăng số lượng item giả lập lên một chút cho đẹp
+        itemCount: 12,
         itemBuilder: (context, index) => Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(
-              12,
-            ), // Bo góc giống StoryCard (thường là 12 hoặc 8)
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
       ),
