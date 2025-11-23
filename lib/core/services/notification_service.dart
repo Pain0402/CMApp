@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
-// Import gói này để lấy múi giờ thiết bị
 import 'package:flutter_timezone/flutter_timezone.dart'; 
 
 class NotificationService {
@@ -22,7 +21,6 @@ class NotificationService {
     // 1. Khởi tạo database múi giờ
     tz.initializeTimeZones();
     
-    // 2. CẤU HÌNH QUAN TRỌNG: Lấy múi giờ thực tế của thiết bị
     try {
       final String timeZoneName = await FlutterTimezone.getLocalTimezone();
       tz.setLocalLocation(tz.getLocation(timeZoneName));
@@ -34,7 +32,7 @@ class NotificationService {
     }
 
     const AndroidInitializationSettings initializationSettingsAndroid =
-        AndroidInitializationSettings('@mipmap/ic_launcher');
+        AndroidInitializationSettings('@mipmap/launcher_icon');
 
     const DarwinInitializationSettings initializationSettingsDarwin =
         DarwinInitializationSettings(
@@ -65,7 +63,6 @@ class NotificationService {
               AndroidFlutterLocalNotificationsPlugin>();
 
       await androidImplementation?.requestNotificationsPermission();
-      await androidImplementation?.requestExactAlarmsPermission();
     } else if (Platform.isIOS) {
       await flutterLocalNotificationsPlugin
           .resolvePlatformSpecificImplementation<
@@ -86,7 +83,7 @@ class NotificationService {
   }) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
-      'your_channel_id',
+      'general_channel_id',
       'General Notifications',
       channelDescription: 'Notifications for general app updates',
       importance: Importance.max,
@@ -114,49 +111,55 @@ class NotificationService {
     required String body,
     required TimeOfDay time, 
   }) async {
-    // Lấy thời gian hiện tại theo múi giờ Local (đã set ở hàm init)
-    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
-    
-    tz.TZDateTime scheduledDate = tz.TZDateTime(
-      tz.local,
-      now.year,
-      now.month,
-      now.day,
-      time.hour,
-      time.minute,
-    );
+    try {
+      // Lấy thời gian hiện tại theo múi giờ Local
+      final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+      
+      tz.TZDateTime scheduledDate = tz.TZDateTime(
+        tz.local,
+        now.year,
+        now.month,
+        now.day,
+        time.hour,
+        time.minute,
+      );
 
-    // Nếu giờ đã qua -> cộng thêm 1 ngày
-    if (scheduledDate.isBefore(now)) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
-    }
+      // Nếu giờ đã qua -> cộng thêm 1 ngày
+      if (scheduledDate.isBefore(now)) {
+        scheduledDate = scheduledDate.add(const Duration(days: 1));
+      }
 
-    // LOG KIỂM TRA: Giờ phải khớp với giờ trên điện thoại của bạn
-    print("Scheduling Daily Notification (Local Time): $scheduledDate");
+      print("Scheduling Daily Notification ID:$id at $scheduledDate");
 
-    await flutterLocalNotificationsPlugin.zonedSchedule(
-      id,
-      title,
-      body,
-      scheduledDate,
-      const NotificationDetails(
-        android: AndroidNotificationDetails(
-          'daily_reminder_channel',
-          'Daily Reminders',
-          channelDescription: 'Daily reading reminders',
-          importance: Importance.high,
-          priority: Priority.high,
+      await flutterLocalNotificationsPlugin.zonedSchedule(
+        id,
+        title,
+        body,
+        scheduledDate,
+        const NotificationDetails(
+          android: AndroidNotificationDetails(
+            'daily_reminder_channel',
+            'Daily Reminders',
+            channelDescription: 'Daily reading reminders',
+            importance: Importance.max, 
+            priority: Priority.high,
+            ongoing: false,
+            styleInformation: BigTextStyleInformation(''),
+          ),
+          iOS: DarwinNotificationDetails(),
         ),
-        iOS: DarwinNotificationDetails(),
-      ),
-      matchDateTimeComponents: DateTimeComponents.time,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.absoluteTime,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, 
-    );
+        matchDateTimeComponents: DateTimeComponents.time, 
+        uiLocalNotificationDateInterpretation:
+            UILocalNotificationDateInterpretation.absoluteTime,
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, 
+      );
+    } catch (e) {
+      print("Error scheduling notification: $e");
+    }
   }
 
   Future<void> cancelNotification(int id) async {
     await flutterLocalNotificationsPlugin.cancel(id);
+    print("Cancelled notification ID:$id");
   }
 }

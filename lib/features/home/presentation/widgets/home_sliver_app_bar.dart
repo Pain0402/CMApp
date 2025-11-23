@@ -35,7 +35,7 @@ class HomeSliverAppBar extends ConsumerWidget {
             const SizedBox(width: 8),
             
             Text(
-              'MyComicsApp',
+              'ComicsVerse',
               style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: theme.colorScheme.onSurface, 

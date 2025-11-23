@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:mycomicsapp/core/services/notification_service.dart';
@@ -32,14 +33,24 @@ class _DailyReminderSwitchState extends State<DailyReminderSwitch> {
 
   Future<void> _toggleReminder(bool value) async {
     if (value) {
-      final status = await Permission.notification.request();
+      // 1. Xin quyền Thông báo (Android 13+)
+      final notificationStatus = await Permission.notification.request();
       
-      if (status.isDenied || status.isPermanentlyDenied) {
-        // Nếu bị từ chối, hiển thị thông báo hướng dẫn người dùng vào cài đặt
-        if (mounted) {
-          _showPermissionDialog();
-        }
+      if (notificationStatus.isDenied || notificationStatus.isPermanentlyDenied) {
+        if (mounted) _showPermissionDialog('Notification');
         return; 
+      }
+
+      // 2. Xin quyền Hẹn giờ chính xác (Android 12+)
+      if (Platform.isAndroid) {
+        final alarmStatus = await Permission.scheduleExactAlarm.status;
+        if (alarmStatus.isDenied) {
+           final result = await Permission.scheduleExactAlarm.request();
+           if (result.isDenied && mounted) {
+             _showPermissionDialog('Schedule Exact Alarm');
+             return;
+           }
+        }
       }
     }
 
@@ -62,12 +73,12 @@ class _DailyReminderSwitchState extends State<DailyReminderSwitch> {
     }
   }
 
-  void _showPermissionDialog() {
+  void _showPermissionDialog(String permissionName) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Permission Required'),
-        content: const Text('To receive daily reading reminders, please allow notifications in settings.'),
+        content: Text('To receive daily reading reminders, please allow "$permissionName" in settings.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -100,6 +111,7 @@ class _DailyReminderSwitchState extends State<DailyReminderSwitch> {
       await prefs.setInt('daily_reminder_hour', picked.hour);
       await prefs.setInt('daily_reminder_minute', picked.minute);
 
+      // Nếu đang bật thì cập nhật lại lịch hẹn
       if (_isEnabled) {
         await _scheduleNotification();
       }
@@ -107,6 +119,9 @@ class _DailyReminderSwitchState extends State<DailyReminderSwitch> {
   }
 
   Future<void> _scheduleNotification() async {
+    // Cancel cái cũ trước khi đặt cái mới để tránh trùng lặp ID
+    await NotificationService().cancelNotification(100);
+    
     await NotificationService().scheduleDailyNotification(
       id: 100,
       title: "It's reading time! 🌙",

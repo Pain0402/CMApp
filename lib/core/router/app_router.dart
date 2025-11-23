@@ -17,10 +17,47 @@ import 'package:mycomicsapp/presentation/screens/scaffold_with_nav_bar.dart';
 import 'package:mycomicsapp/presentation/screens/splash_screen.dart';
 import 'package:mycomicsapp/features/home/presentation/screens/ranking_screen.dart';
 
-
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
-/// Provides the GoRouter instance, configured with routes and redirection logic.
+CustomTransitionPage buildPageWithSlideTransition<T>({
+  required BuildContext context,
+  required GoRouterState state,
+  required Widget child,
+}) {
+  return CustomTransitionPage<T>(
+    key: state.pageKey,
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      const begin = Offset(1.0, 0.0);
+      const end = Offset.zero;
+      const curve = Curves.easeInOut;
+      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+      return SlideTransition(
+        position: animation.drive(tween),
+        child: child,
+      );
+    },
+    transitionDuration: const Duration(milliseconds: 300),
+  );
+}
+
+CustomTransitionPage buildPageWithFadeTransition<T>({
+  required BuildContext context,
+  required GoRouterState state,
+  required Widget child,
+}) {
+  return CustomTransitionPage<T>(
+    key: state.pageKey,
+    child: child,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(
+        opacity: CurveTween(curve: Curves.easeIn).animate(animation),
+        child: child,
+      );
+    },
+  );
+}
+
 final goRouterProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authStateChangesProvider);
 
@@ -34,61 +71,96 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         path: '/splash',
         builder: (context, state) => const SplashScreen(),
       ),
-      GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
+      GoRoute(
+        path: '/login',
+        pageBuilder: (context, state) => buildPageWithFadeTransition(
+          context: context, 
+          state: state, 
+          child: const LoginScreen()
+        ),
+      ),
       GoRoute(
         path: '/signup',
-        builder: (context, state) => const SignUpScreen(),
+        pageBuilder: (context, state) => buildPageWithSlideTransition(
+          context: context, 
+          state: state, 
+          child: const SignUpScreen()
+        ),
       ),
       GoRoute(
         path: '/profile/edit',
-        builder: (context, state) => const EditProfileScreen(),
+        pageBuilder: (context, state) => buildPageWithSlideTransition(
+          context: context, 
+          state: state, 
+          child: const EditProfileScreen()
+        ),
       ),
       GoRoute(
         path: '/search',
-        builder: (context, state) => const SearchScreen(),
+        pageBuilder: (context, state) => buildPageWithSlideTransition(
+          context: context, 
+          state: state, 
+          child: const SearchScreen()
+        ),
       ),
 
       // Story details and reader screens
       GoRoute(
         path: '/story/:storyId',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final storyId = state.pathParameters['storyId']!;
           final story = state.extra as Story?;
-          return StoryDetailsScreen(storyId: storyId, story: story);
+          return buildPageWithSlideTransition(
+            context: context,
+            state: state,
+            child: StoryDetailsScreen(storyId: storyId, story: story),
+          );
         },
         routes: [
           GoRoute(
             path: 'chapter/:chapterId',
-            builder: (context, state) {
+            pageBuilder: (context, state) {
               final storyId = state.pathParameters['storyId']!;
               final extra = state.extra as Map<String, dynamic>?;
 
-              final storyTitle =
-                  extra?['storyTitle'] as String? ?? 'Loading...';
+              final storyTitle = extra?['storyTitle'] as String? ?? 'Loading...';
               final chapter = extra?['chapter'] as Chapter?;
               final allChapters = extra?['allChapters'] as List<Chapter>? ?? [];
 
               if (chapter == null) {
-                return const Scaffold(
-                  body: Center(child: Text("Error: Chapter info not found.")),
+                return buildPageWithSlideTransition(
+                  context: context,
+                  state: state,
+                  child: const Scaffold(
+                    body: Center(child: Text("Error: Chapter info not found.")),
+                  ),
                 );
               }
 
-              return ReaderScreen(
-                storyId: storyId,
-                storyTitle: storyTitle,
-                chapter: chapter,
-                allChapters: allChapters,
+              return buildPageWithSlideTransition(
+                context: context,
+                state: state,
+                child: ReaderScreen(
+                  storyId: storyId,
+                  storyTitle: storyTitle,
+                  chapter: chapter,
+                  allChapters: allChapters,
+                ),
               );
             },
           ),
         ],
       ),
 
-      // Main application structure with bottom navigation bar
-      StatefulShellRoute.indexedStack(
+      StatefulShellRoute(
+        navigatorContainerBuilder: (context, navigationShell, children) {
+          return ScaffoldWithNavBar(
+            navigationShell: navigationShell,
+            children: children,
+          );
+        },
         builder: (context, state, navigationShell) {
-          return ScaffoldWithNavBar(navigationShell: navigationShell);
+          return navigationShell;
         },
         branches: [
           StatefulShellBranch(
@@ -126,7 +198,6 @@ final goRouterProvider = Provider<GoRouter>((ref) {
         ],
       ),
     ],
-    // Automatic redirection logic based on authentication state.
     redirect: (context, state) {
       if (authState.isLoading || authState.hasError) {
         return null; 
