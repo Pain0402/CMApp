@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:shimmer/shimmer.dart';
 import 'dart:ui';
 import 'dart:async'; 
+import 'package:mycomicsapp/core/services/notification_service.dart';
 
 class HomeSliverAppBar extends ConsumerWidget {
   const HomeSliverAppBar({super.key});
@@ -64,8 +65,19 @@ class HomeSliverAppBar extends ConsumerWidget {
       ),
       actions: [
         IconButton(
-          onPressed: () {},
-          icon: Badge(child: Icon(Icons.notifications_outlined, size: 24)),
+          onPressed: () async {
+            // Gọi hàm hiển thị thông báo
+            await NotificationService().showNotification(
+              id: 1,
+              title: 'New Chapter Available! 📖',
+              body: 'One Piece Chapter 1100 has just been released. Read now!',
+            );
+          },
+          icon: const Badge(
+            label: Text('1'), 
+            child: Icon(Icons.notifications_outlined, size: 24)
+          ),
+          tooltip: 'Test Notification',
         ),
         IconButton(
           onPressed: () => context.push('/search'),

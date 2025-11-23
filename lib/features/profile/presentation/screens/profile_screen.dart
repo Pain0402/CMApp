@@ -1,5 +1,6 @@
 import 'package:mycomicsapp/features/auth/presentation/providers/auth_providers.dart';
 import 'package:mycomicsapp/features/profile/presentation/providers/profile_providers.dart';
+import 'package:mycomicsapp/features/profile/presentation/widgets/daily_reminder_switch.dart'; // Import widget mới
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -166,6 +167,7 @@ class ProfileScreen extends ConsumerWidget {
                   );
                 },
               ),
+              const DailyReminderSwitch(),              
               ListTile(
                 leading: Icon(Icons.logout, color: colorScheme.error),
                 hoverColor: theme.colorScheme.primary.withAlpha(26), 
@@ -176,6 +178,7 @@ class ProfileScreen extends ConsumerWidget {
                 ),
                 onTap: () => _showLogoutConfirmationDialog(context, ref),
               ),
+              const SizedBox(height: 40), 
             ],
           );
         },

@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:mycomicsapp/core/services/notification_service.dart';
+
 
 Future<void> main() async {
   // Ensure that Flutter bindings are initialized
@@ -16,6 +18,10 @@ Future<void> main() async {
     url: dotenv.env['SUPABASE_URL']!,
     anonKey: dotenv.env['SUPABASE_ANON_KEY']!,
   );
+
+  final notificationService = NotificationService();
+  await notificationService.init();
+  await notificationService.requestPermissions(); 
 
   // Run the app within a ProviderScope for Riverpod state management
   runApp(const ProviderScope(child: MyApp()));
